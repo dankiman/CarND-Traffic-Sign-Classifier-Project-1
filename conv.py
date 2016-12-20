@@ -51,21 +51,34 @@ def conv_net2(x, dropout):
     
     # Pooling Layer 2. 16x16x16 -> 8x8x16
     conv2 = maxpool2d(conv2)
+
+    # Convolution Layer 3. 16x16x6 -> 16x16x16
+    conv3_W = weight_variable([5, 5, 16, 32])
+    conv3_b = bias_variable([32])
+    conv3 = conv2d(conv2, conv3_W, conv3_b)
     
-    # Fully Connected Layer1. 8x8x16 -> 120
-    fc1_W = weight_variable([8*8*16, 120])
+    # Pooling Layer 3. 16x16x16 -> 8x8x16
+    conv3 = maxpool2d(conv3)
+    
+    # Fully Connected Layer 1. 8x8x16 -> 120
+    fc1_W = weight_variable([4*4*32, 120])
     fc1_b = bias_variable([120])
-    fc1 = tf.reshape(conv2, [-1, 8*8*16])
+    fc1 = tf.reshape(conv3, [-1, 4*4*32])
     fc1 = tf.nn.relu(tf.matmul(fc1, fc1_W) + fc1_b)
+
+    # Fully Connected Layer 2. 8x8x16 -> 120
+    fc2_W = weight_variable([120, 84])
+    fc2_b = bias_variable([84])
+    fc2 = tf.nn.relu(tf.matmul(fc1, fc2_W) + fc2_b)
     
     # Apply Dropout
-    fc1 = tf.nn.dropout(fc1, dropout)
+    fc2 = tf.nn.dropout(fc2, dropout)
     
-    # Fully Connected Layer2. 120 -> 43
-    fc2_W = weight_variable([120, 43])
-    fc2_b = bias_variable([43])
-    fc2 = tf.matmul(fc1, fc2_W) + fc2_b
-    return fc2
+    # Fully Connected Layer 3. 120 -> 43
+    fc3_W = weight_variable([84, 43])
+    fc3_b = bias_variable([43])
+    fc3 = tf.matmul(fc2, fc3_W) + fc3_b
+    return fc3
 
 def conv_net(x, dropout):
     # Reshape from 2D to 4D. This prepares the data for
